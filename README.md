@@ -58,7 +58,6 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - No warning when closing a window with unsaved changes
 - No drag-and-drop file opening
 - No recent files list
-- No printing support
 - The .app bundle is not code-signed (macOS may show a security warning on first launch)
 
 ## Possible Improvements
@@ -70,7 +69,7 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - Tab size and indentation settings
 - Word count display
 - Drag-and-drop to open files
-- Open files via command-line arguments (`./Writer file.txt`)
+- Open files via command-line arguments (`./writer file.txt`)
 - Remember window size and position between sessions
 - Configurable font and font size
 - Dark mode / light mode toggle
@@ -78,6 +77,5 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - Encoding detection for non-UTF-8 files
 - Custom app icon (.icns)
 - Code signing for distribution
-- Print support (Cmd+P)
 - Recent files menu (File > Open Recent)
 - Tab or sidebar interface for multiple documents in one window
