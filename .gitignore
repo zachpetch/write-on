@@ -1,4 +1,5 @@
 write-on
+write-on.app/
 *.o
 *.dSYM/
 .DS_Store

@@ -22,6 +22,13 @@ make
 ./write-on
 ```
 
+To build as a macOS .app bundle (provides dock icon persistence and file type associations):
+
+```
+make app
+open write-on.app
+```
+
 ## Usage
 
 Launch the editor and start typing. Each document opens in its own window.
@@ -52,7 +59,7 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - No drag-and-drop file opening
 - No recent files list
 - No printing support
-- Runs as a standalone executable, not a bundled .app (no dock icon persistence or file type associations)
+- The .app bundle is not code-signed (macOS may show a security warning on first launch)
 
 ## Possible Improvements
 
@@ -69,7 +76,8 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - Dark mode / light mode toggle
 - Auto-save and crash recovery
 - Encoding detection for non-UTF-8 files
-- Bundle as a proper .app with an icon, file type associations, and dock presence
+- Custom app icon (.icns)
+- Code signing for distribution
 - Print support (Cmd+P)
 - Recent files menu (File > Open Recent)
 - Tab or sidebar interface for multiple documents in one window
