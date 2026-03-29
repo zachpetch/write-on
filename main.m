@@ -1,53 +1,66 @@
 #import <Cocoa/Cocoa.h>
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
-@property (strong) NSWindow *window;
+// Each document window holds its own text view and file path
+@interface DocumentWindow : NSWindow
 @property (strong) NSTextView *textView;
-@property (strong) NSString *currentFilePath;
+@property (strong) NSString *filePath;
+@end
+
+@implementation DocumentWindow
+@end
+
+@interface AppDelegate : NSObject <NSApplicationDelegate>
 @end
 
 @implementation AppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification *)notification {
-    // Window
+- (DocumentWindow *)createDocumentWindow {
     NSRect frame = NSMakeRect(0, 0, 800, 600);
     NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                        NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable;
-    self.window = [[NSWindow alloc] initWithContentRect:frame
-                                              styleMask:style
-                                                backing:NSBackingStoreBuffered
-                                                  defer:NO];
-    [self.window setTitle:@"Untitled"];
-    [self.window center];
+    DocumentWindow *window = [[DocumentWindow alloc] initWithContentRect:frame
+                                                              styleMask:style
+                                                                backing:NSBackingStoreBuffered
+                                                                  defer:NO];
+    [window setTitle:@"Untitled"];
+    [window setReleasedWhenClosed:NO];
+
+    // Cascade from existing windows
+    static NSPoint nextTopLeft = {0, 0};
+    nextTopLeft = [window cascadeTopLeftFromPoint:nextTopLeft];
 
     // Scroll view
     NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:
-                                [[self.window contentView] bounds]];
+                                [[window contentView] bounds]];
     [scrollView setHasVerticalScroller:YES];
     [scrollView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
 
     // Text view
     NSSize contentSize = [scrollView contentSize];
-    self.textView = [[NSTextView alloc] initWithFrame:
-                     NSMakeRect(0, 0, contentSize.width, contentSize.height)];
-    [self.textView setMinSize:NSMakeSize(0, contentSize.height)];
-    [self.textView setMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
-    [self.textView setVerticallyResizable:YES];
-    [self.textView setHorizontallyResizable:NO];
-    [self.textView setAutoresizingMask:NSViewWidthSizable];
-    [[self.textView textContainer] setWidthTracksTextView:YES];
-    [self.textView setFont:[NSFont monospacedSystemFontOfSize:14
-                                                       weight:NSFontWeightRegular]];
-    [self.textView setAllowsUndo:YES];
+    NSTextView *textView = [[NSTextView alloc] initWithFrame:
+                            NSMakeRect(0, 0, contentSize.width, contentSize.height)];
+    [textView setMinSize:NSMakeSize(0, contentSize.height)];
+    [textView setMaxSize:NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX)];
+    [textView setVerticallyResizable:YES];
+    [textView setHorizontallyResizable:NO];
+    [textView setAutoresizingMask:NSViewWidthSizable];
+    [[textView textContainer] setWidthTracksTextView:YES];
+    [textView setFont:[NSFont monospacedSystemFontOfSize:14
+                                                  weight:NSFontWeightRegular]];
+    [textView setAllowsUndo:YES];
 
-    [scrollView setDocumentView:self.textView];
-    [self.window setContentView:scrollView];
+    [scrollView setDocumentView:textView];
+    [window setContentView:scrollView];
+    window.textView = textView;
 
-    // Menu bar
+    return window;
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [self setupMenuBar];
 
-    // Show window and activate
-    [self.window makeKeyAndOrderFront:nil];
+    DocumentWindow *window = [self createDocumentWindow];
+    [window makeKeyAndOrderFront:nil];
     [NSApp activateIgnoringOtherApps:YES];
 }
 
@@ -68,6 +81,8 @@
     NSMenu *fileMenu = [[NSMenu alloc] initWithTitle:@"File"];
     [fileMenu addItemWithTitle:@"New" action:@selector(newDocument:) keyEquivalent:@"n"];
     [fileMenu addItemWithTitle:@"Open..." action:@selector(openDocument:) keyEquivalent:@"o"];
+    [fileMenu addItem:[NSMenuItem separatorItem]];
+    [fileMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
     [fileMenu addItem:[NSMenuItem separatorItem]];
     [fileMenu addItemWithTitle:@"Save" action:@selector(saveDocument:) keyEquivalent:@"s"];
     NSMenuItem *saveAsItem = [fileMenu addItemWithTitle:@"Save As..."
@@ -99,59 +114,66 @@
 }
 
 - (void)newDocument:(id)sender {
-    [self.textView setString:@""];
-    self.currentFilePath = nil;
-    [self.window setTitle:@"Untitled"];
+    DocumentWindow *window = [self createDocumentWindow];
+    [window makeKeyAndOrderFront:nil];
 }
 
 - (void)openDocument:(id)sender {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
-    [panel beginSheetModalForWindow:self.window
-                  completionHandler:^(NSModalResponse result) {
+    [panel setAllowsMultipleSelection:NO];
+    [panel beginWithCompletionHandler:^(NSModalResponse result) {
         if (result == NSModalResponseOK) {
             NSError *error = nil;
             NSString *contents = [NSString stringWithContentsOfURL:panel.URL
                                                           encoding:NSUTF8StringEncoding
                                                              error:&error];
             if (contents) {
-                [self.textView setString:contents];
-                self.currentFilePath = [panel.URL path];
-                [self.window setTitle:[panel.URL lastPathComponent]];
+                DocumentWindow *window = [self createDocumentWindow];
+                [window.textView setString:contents];
+                window.filePath = [panel.URL path];
+                [window setTitle:[panel.URL lastPathComponent]];
+                [window makeKeyAndOrderFront:nil];
             }
         }
     }];
 }
 
 - (void)saveDocument:(id)sender {
-    if (self.currentFilePath) {
+    DocumentWindow *window = (DocumentWindow *)[NSApp keyWindow];
+    if (![window isKindOfClass:[DocumentWindow class]]) return;
+
+    if (window.filePath) {
         NSError *error = nil;
-        [self.textView.string writeToFile:self.currentFilePath
-                               atomically:YES
-                                 encoding:NSUTF8StringEncoding
-                                    error:&error];
+        [window.textView.string writeToFile:window.filePath
+                                 atomically:YES
+                                   encoding:NSUTF8StringEncoding
+                                      error:&error];
     } else {
         [self saveDocumentAs:sender];
     }
 }
 
 - (void)saveDocumentAs:(id)sender {
+    DocumentWindow *window = (DocumentWindow *)[NSApp keyWindow];
+    if (![window isKindOfClass:[DocumentWindow class]]) return;
+
     NSSavePanel *panel = [NSSavePanel savePanel];
-    [panel beginSheetModalForWindow:self.window
+    [panel beginSheetModalForWindow:window
                   completionHandler:^(NSModalResponse result) {
         if (result == NSModalResponseOK) {
             NSError *error = nil;
-            [self.textView.string writeToURL:panel.URL
-                                  atomically:YES
-                                    encoding:NSUTF8StringEncoding
-                                       error:&error];
-            self.currentFilePath = [panel.URL path];
-            [self.window setTitle:[panel.URL lastPathComponent]];
+            [window.textView.string writeToURL:panel.URL
+                                    atomically:YES
+                                      encoding:NSUTF8StringEncoding
+                                         error:&error];
+            window.filePath = [panel.URL path];
+            [window setTitle:[panel.URL lastPathComponent]];
         }
     }];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
-    return YES;
+    return NO;
 }
 
 @end
