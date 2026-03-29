@@ -70,7 +70,7 @@
     // App menu
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
     NSMenu *appMenu = [[NSMenu alloc] init];
-    [appMenu addItemWithTitle:@"Quit write-on"
+    [appMenu addItemWithTitle:@"Quit Writer"
                        action:@selector(terminate:)
                 keyEquivalent:@"q"];
     [appMenuItem setSubmenu:appMenu];

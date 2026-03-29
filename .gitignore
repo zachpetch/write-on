@@ -1,5 +1,5 @@
-write-on
-write-on.app/
+writer
+Writer.app/
 *.o
 *.dSYM/
 .DS_Store

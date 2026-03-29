@@ -1,15 +1,16 @@
-APP = write-on
+BIN = writer
+APP = Writer
 
-$(APP): main.m
-	clang -framework Cocoa -o $(APP) main.m
+$(BIN): main.m
+	clang -framework Cocoa -o $(BIN) main.m
 
-app: $(APP)
+app: $(BIN)
 	mkdir -p $(APP).app/Contents/MacOS
-	cp $(APP) $(APP).app/Contents/MacOS/
+	cp $(BIN) $(APP).app/Contents/MacOS/
 	cp Info.plist $(APP).app/Contents/
 
 clean:
-	rm -f $(APP)
+	rm -f $(BIN)
 	rm -rf $(APP).app
 
 .PHONY: clean app

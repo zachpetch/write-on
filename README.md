@@ -1,4 +1,4 @@
-# write-on
+# Writer
 
 A minimal plain-text editor for macOS, built with native Cocoa and no external dependencies.
 
@@ -19,14 +19,14 @@ A minimal plain-text editor for macOS, built with native Cocoa and no external d
 
 ```
 make
-./write-on
+./Writer
 ```
 
 To build as a macOS .app bundle (provides dock icon persistence and file type associations):
 
 ```
 make app
-open write-on.app
+open Writer.app
 ```
 
 ## Usage
@@ -70,7 +70,7 @@ The application stays open after the last window is closed, so you can use Cmd+N
 - Tab size and indentation settings
 - Word count display
 - Drag-and-drop to open files
-- Open files via command-line arguments (`./write-on file.txt`)
+- Open files via command-line arguments (`./Writer file.txt`)
 - Remember window size and position between sessions
 - Configurable font and font size
 - Dark mode / light mode toggle
