@@ -1,0 +1,4 @@
+write-on
+*.o
+*.dSYM/
+.DS_Store
