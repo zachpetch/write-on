@@ -19,7 +19,7 @@ A minimal plain-text editor for macOS, built with native Cocoa and no external d
 
 ```
 make
-./Writer
+./writer
 ```
 
 To build as a macOS .app bundle (provides dock icon persistence and file type associations):
